@@ -12,8 +12,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.akelius.R
 import com.akelius.section.countryimages.adapter.CountryImagesAdapter
 import com.akelius.service.extensions.Resource
+import com.akelius.service.model.countryimagesmodel.File
+import com.akelius.service.model.countryimagesmodel.FileCheck
+import com.akelius.service.utils.Utils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_images.*
+import kotlinx.coroutines.flow.onStart
+import java.util.*
+import kotlin.collections.HashMap
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -32,55 +38,101 @@ class ImagesFragment : Fragment() {
     private var param2: String? = null
     lateinit var countryImageViewModel: CountryImageViewModel
     private var factory: CountryImagesAdapter? = null
-
+    var hashMap = HashMap<Int, File>()
+    var treeMap = TreeMap<Int, FileCheck>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
             param1 = it.getString(ARG_PARAM1)
             param2 = it.getString(ARG_PARAM2)
         }
+
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
+        countryImageViewModel = ViewModelProvider(this).get(
+            CountryImageViewModel::class.java
+        )
         return inflater.inflate(R.layout.fragment_images, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        initRecyclerview()
         countryImageViewModel = ViewModelProvider(this).get(
             CountryImageViewModel::class.java
         )
-        countryImageViewModel.getTodayNamazData()
+        countryImageViewModel.getImageRemotelyData(requireContext())
+        countryImageViewModel.getImageLocallyData()
+
         lifecycleScope.launchWhenStarted {
-            countryImageViewModel.countryimageslist.collect() {
+            var count = 0
+            countryImageViewModel.countryimageslist.collect {
+                initRecyclerview()
+
                 when (it) {
                     is Resource.onFailure -> {
                         Log.d("Noshairam", "Failure")
-
                     }
                     is Resource.onSuccess -> {
+                        treeMap.clear()
+                        Log.d("Noshairam", "Success")
+                        it.data?.files
                         if (it.data?.files != null) {
                             Log.d("Noshairam", it.data.files.toString())
+                            var j = 0
+                            it.data.files.forEach {
+                                if (Utils.remote.get(count) == it.stats.ino) {
 
+                                    treeMap.set(
+                                        j, FileCheck(
+                                            "Added R Missing L",
+                                            it
+                                        )
+                                    )
+                                    if (Utils.remote.size - 1 != count)
+                                        count++
+                                } else {
+                                    treeMap.set(
+                                        j, FileCheck(
+                                            "",
+                                            it
+                                        )
+                                    )
+                                }
+                                j++
+                            }
+                            countryImageViewModel.countryimageslocallylist.collect { local ->
+                                count = 0
+                                local.data?.files?.forEach { data ->
+                                    if (Utils.local.get(count) == data.stats.ino) {
+
+                                        treeMap.set(
+                                            j, FileCheck(
+                                                "Mssing R Added L",
+                                                data
+                                            )
+                                        )
+                                        if (Utils.remote.size - 1 != count)
+                                            count++
+                                        j++
+                                    }
+
+                                }
+                                factory?.update(treeMap)
+                            }
                         }
-                        //if (!keylist.isEmpty())
-                            factory?.update(it.data?.files)
-                        Log.d("Noshairam", "Sucess")
-
                     }
                     is Resource.onLoading -> {
                         Log.d("Noshairam", "Loading")
-
                     }
                 }
             }
         }
 
     }
+
     private fun initRecyclerview() {
         rc_img_list.apply {
             layoutManager = LinearLayoutManager(context)

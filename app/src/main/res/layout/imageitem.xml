@@ -6,23 +6,36 @@
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/l1"
         android:layout_width="match_parent"
+        android:padding="10dp"
+
         android:layout_height="wrap_content">
 
         <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/text_view_id"
+            android:id="@+id/images"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Fajar"
             android:textColor="@color/black"
             android:textSize="20dp" />
-
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/l2"
+        android:layout_width="match_parent"
+        android:padding="10dp"
+            android:orientation="vertical"
+        android:layout_height="wrap_content">
         <TextView
-            android:id="@+id/fajar"
+            android:id="@+id/checktext"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Noshair"
             android:textColor="@color/black"
             android:textSize="20dp"
             android:textStyle="bold" />
+        <TextView
+            android:id="@+id/text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:textSize="20dp"
+            android:textStyle="bold" />
+    </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.appcompat.widget.LinearLayoutCompat>
 </androidx.cardview.widget.CardView>

@@ -14,7 +14,14 @@
 
         android:orientation="vertical">
 
-
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/sync"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sync"
+            android:textSize="25dp"
+            android:textColor="@color/black"
+            />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rc_img_list"

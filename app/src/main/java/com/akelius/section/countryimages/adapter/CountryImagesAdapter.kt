@@ -9,31 +9,36 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.akelius.R
 import com.akelius.service.model.countryimagesmodel.File
+import com.akelius.service.model.countryimagesmodel.FileCheck
 import com.akelius.service.model.countryimagesmodel.ImageDataClass
+import com.akelius.service.utils.Utils
 import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.imageitem.view.*
 import java.nio.file.Files
 
 import java.util.*
+import kotlin.collections.HashMap
 
 class CountryImagesAdapter(private val context: Context) :
     RecyclerView.Adapter<CountryImagesAdapter.TodayViewHolder>() {
 
     // data
-    var countryimglist = mutableListOf<File>()
+    var countryimglist = TreeMap<Int, FileCheck>()
 
+    var count=0
 
-
+    var b=true
     inner class TodayViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-        val namaztiming: TextView = itemView.fajar
-        val img: ImageView = itemView.text_view_id
-
+        val atime: TextView = itemView.text
+        val checktext: TextView = itemView.checktext
+        val img: ImageView = itemView.images
         fun bind(position: Int) {
-            namaztiming.text = countryimglist.get(position)?.stats?.atime
-            Glide
-                .with(context)
-                .load(countryimglist.get(position).path)
+
+            atime.text = countryimglist.get(position)?.file?.stats?.atime
+                checktext.text=countryimglist.get(position)?.status
+            Glide.with(context)
+                .load(countryimglist.get(position)?.file?.path)
                 .centerCrop()
                 .placeholder(R.drawable.ic_launcher_background)
                 .into(img);
@@ -47,7 +52,6 @@ class CountryImagesAdapter(private val context: Context) :
     }
 
     override fun onBindViewHolder(holder: TodayViewHolder, position: Int) {
-        val item = countryimglist[position]
         holder.bind(position)
     }
 
@@ -57,9 +61,9 @@ class CountryImagesAdapter(private val context: Context) :
 
 
     // reloadData()
-    fun update(users: List<File>?) {
+    fun update(users: TreeMap<Int, FileCheck>) {
         this.countryimglist.clear()
-        countryimglist = users as MutableList<File>
+        countryimglist = users
         notifyDataSetChanged()
     }
 }
