@@ -12,6 +12,7 @@ import dagger.hilt.android.qualifiers.ActivityContext
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import java.time.LocalDate
@@ -27,7 +28,9 @@ class CountryImagesRerpository @Inject constructor(
         if (InternetCheck.isOnline(context)) {
             emit(apiService.countriesImage())
         } else {
-            imagesDao.getAll()
+            getallImagesLocally().collect(){
+                emit( it)
+            }
         }
     }.flowOn(Dispatchers.IO)
 
@@ -68,11 +71,7 @@ class CountryImagesRerpository @Inject constructor(
         }
         if (myList != null) {
             Log.d("diffrence", myList.size.toString())
-            emit(
-                ImageDataClass(
-                    myList,
-                    "200"
-                )
+            emit(ImageDataClass(myList, "200")
             )
         }
     }

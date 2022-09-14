@@ -5,13 +5,12 @@
     android:id="@+id/root_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-   >
+    android:orientation="vertical">
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-
+        android:layout_gravity="center"
         android:orientation="vertical">
 
         <androidx.appcompat.widget.AppCompatButton
@@ -19,16 +18,25 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Sync"
-            android:textSize="25dp"
             android:textColor="@color/black"
-            />
+            android:textSize="25sp" />
+
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rc_img_list"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layoutManager="LinearLayoutManager"
             android:padding="20dp"
+
+            app:layoutManager="LinearLayoutManager"
             tools:listitem="@layout/imageitem" />
-    </androidx.appcompat.widget.LinearLayoutCompat>
+        <ProgressBar
+            android:id="@+id/pg"
+            android:visibility="invisible"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            />
+    </RelativeLayout>
 </FrameLayout>

@@ -17,7 +17,6 @@ import com.akelius.service.model.countryimagesmodel.FileCheck
 import com.akelius.service.utils.Utils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_images.*
-import kotlinx.coroutines.flow.onStart
 import java.util.*
 import kotlin.collections.HashMap
 
@@ -40,6 +39,7 @@ class ImagesFragment : Fragment() {
     private var factory: CountryImagesAdapter? = null
     var hashMap = HashMap<Int, File>()
     var treeMap = TreeMap<Int, FileCheck>()
+    var list = arrayListOf<File>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
@@ -70,29 +70,40 @@ class ImagesFragment : Fragment() {
             var count = 0
             countryImageViewModel.countryimageslist.collect {
                 initRecyclerview()
-
+                pg.visibility=View.GONE
+                rc_img_list.visibility=View.VISIBLE
                 when (it) {
                     is Resource.onFailure -> {
                         Log.d("Noshairam", "Failure")
                     }
                     is Resource.onSuccess -> {
+
                         treeMap.clear()
                         Log.d("Noshairam", "Success")
-                        it.data?.files
                         if (it.data?.files != null) {
                             Log.d("Noshairam", it.data.files.toString())
                             var j = 0
                             it.data.files.forEach {
-                                if (Utils.remote.get(count) == it.stats.ino) {
+                                if (Utils.remote.isNotEmpty()) {
+                                    if (Utils.remote.get(count) == it.stats.ino) {
 
-                                    treeMap.set(
-                                        j, FileCheck(
-                                            "Added R Missing L",
-                                            it
+                                        treeMap.set(
+                                            j, FileCheck(
+                                                "Added R Missing L",
+                                                it
+                                            )
                                         )
-                                    )
-                                    if (Utils.remote.size - 1 != count)
-                                        count++
+                                        if (Utils.remote.size - 1 != count)
+                                            count++
+                                    } else {
+                                        treeMap.set(
+                                            j, FileCheck(
+                                                "",
+                                                it
+                                            )
+                                        )
+                                    }
+                                    j++
                                 } else {
                                     treeMap.set(
                                         j, FileCheck(
@@ -100,28 +111,50 @@ class ImagesFragment : Fragment() {
                                             it
                                         )
                                     )
+                                    j++
                                 }
-                                j++
                             }
                             countryImageViewModel.countryimageslocallylist.collect { local ->
                                 count = 0
+
                                 local.data?.files?.forEach { data ->
-                                    if (Utils.local.get(count) == data.stats.ino) {
+                                    if (Utils.local.isNotEmpty()) {
 
-                                        treeMap.set(
-                                            j, FileCheck(
-                                                "Mssing R Added L",
-                                                data
+                                        if (Utils.local.get(count) == data.stats.ino) {
+                                            treeMap.set(
+                                                j, FileCheck(
+                                                    "Mssing R Added L",
+                                                    data
+                                                )
                                             )
-                                        )
-                                        if (Utils.remote.size - 1 != count)
-                                            count++
-                                        j++
+                                            if (Utils.local.size - 1 != count)
+                                                count++
+                                            j++
+                                        }
                                     }
-
+                                    if (j < it.data.files.size)
+                                        if (it.data.files.get(j).stats?.ino == data.stats.ino && !it.data.files.get(
+                                                j
+                                            ).stats.equals(data.stats)
+                                        ) {
+                                            treeMap.set(
+                                                j, FileCheck(
+                                                    "Stat Change",
+                                                    data
+                                                )
+                                            )
+                                        }
+                                }
+                                for (i in 0 until treeMap.size - 1) {
+                                    for (k in i until treeMap.size - 1) {
+                                        if (treeMap[i]?.file?.stats?.ino == treeMap[k + 1]?.file?.stats?.ino) {
+                                            Log.d("find", "ok")
+                                        }
+                                    }
                                 }
                                 factory?.update(treeMap)
                             }
+
                         }
                     }
                     is Resource.onLoading -> {
@@ -129,8 +162,27 @@ class ImagesFragment : Fragment() {
                     }
                 }
             }
+
         }
 
+    }
+
+    override fun onResume() {
+
+        sync.setOnClickListener(View.OnClickListener {
+            list.clear()
+            treeMap.forEach {
+                list.add(it.value.file)
+            }
+
+            lifecycleScope.launchWhenStarted {
+                countryImageViewModel.setlocally(list)
+                countryImageViewModel.getImageRemotelyData(requireContext())
+            }
+
+
+        })
+        super.onResume()
     }
 
     private fun initRecyclerview() {

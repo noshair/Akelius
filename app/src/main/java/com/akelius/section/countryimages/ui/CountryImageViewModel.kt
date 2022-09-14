@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.akelius.service.extensions.InternetCheck
 import com.akelius.service.extensions.Resource
 import com.akelius.service.model.countryimagesmodel.File
 import com.akelius.service.model.countryimagesmodel.FileData
@@ -14,10 +15,8 @@ import com.akelius.service.model.countryimagesmodel.ImagesDao
 import com.akelius.service.repository.CountryImagesRerpository
 import com.akelius.service.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import java.util.*
 import javax.inject.Inject
 import kotlin.collections.ArrayList
@@ -41,63 +40,59 @@ class CountryImageViewModel
             _countryimageslist?.value = Resource.onLoading()
             countryImagesRerpository.getImageData(context)
                 .catch { e ->
-                    e.message?.let { Log.d("Noshairam", it) }
+                    e.message?.let { Log.d("Noshairam", it)
+                    }
                 }.collect {
                     listlocal.clear()
                     listremote.clear()
-                    if (it.files.isNotEmpty())
-                        if (imagesDao.getAll()?.isEmpty() == true)
-                            it.files.forEach {
-                                val convert = FileData(
-                                    it.path,
-                                    it.stats.atime,
-                                    it.stats.mtimeMs,
-                                    it.stats.birthtime,
-                                    it.stats.birthtimeMs,
-                                    it.stats.blksize,
-                                    it.stats.blocks,
-                                    it.stats.ctime,
-                                    it.stats.ctimeMs,
-                                    it.stats.dev,
-                                    it.stats.gid,
-                                    it.stats.ino,
-                                    it.stats.mode,
-                                    it.stats.mtime,
-                                    it.stats.mtimeMs,
-                                    it.stats.nlink,
-                                    it.stats.rdev,
-                                    it.stats.size,
-                                    it.stats.uid
-                                )
-                                imagesDao.insertAllImages(convert)
-                            }
-
                     if (countryimageslocallylist.value.data?.files != null) {
-                        val r = countryimageslocallylist.value.data?.files?.map { it1 ->
+                        countryimageslocallylist.value.data?.files?.map { it1 ->
                             listlocal.add(it1.stats.ino)
                         }
-
                     }
-
-
                     it.files.map {
                         listremote.add(it.stats.ino)
                     }
-                    Utils.local.clear()
-                    Utils.remote.clear()
-                    Utils.remote.addAll(listremote.minus(listlocal).toList())
-                    Utils.local.addAll(listlocal.minus(listremote))
+                    if (it.files.isNotEmpty())
+                        if (imagesDao.getAll()?.isEmpty() == true)
+                            setlocally(it.files)
+                        else {
+                            Utils.remote.addAll(listremote.minus(listlocal).toList())
+                            Utils.local.addAll(listlocal.minus(listremote))
+                        }
                     Log.d("findremote", Utils.remote.toString())
                     Log.d("findlocal", Utils.local.toString())
 
-                    countryimageslocallylist.value.data?.files?.forEach { a ->
-                        if (Utils.local.get(0) == a.stats.ino)
-                            it.files.plus(a)
-
-                    }
                     _countryimageslist?.value = Resource.onSuccess(it)
                 }
         }
+    }
+    suspend fun setlocally(files: List<File>) {
+        files.forEach {
+            val convert = FileData(
+                it.path,
+                it.stats.atime,
+                it.stats.mtimeMs,
+                it.stats.birthtime,
+                it.stats.birthtimeMs,
+                it.stats.blksize,
+                it.stats.blocks,
+                it.stats.ctime,
+                it.stats.ctimeMs,
+                it.stats.dev,
+                it.stats.gid,
+                it.stats.ino,
+                it.stats.mode,
+                it.stats.mtime,
+                it.stats.mtimeMs,
+                it.stats.nlink,
+                it.stats.rdev,
+                it.stats.size,
+                it.stats.uid
+            )
+            imagesDao.insertAllImages(convert)
+        }
+
     }
 
     fun getImageLocallyData() {
