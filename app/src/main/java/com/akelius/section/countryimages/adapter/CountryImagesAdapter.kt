@@ -62,6 +62,7 @@ class CountryImagesAdapter(private val context: Context) :
 
     // reloadData()
     fun update(users: TreeMap<Int, FileCheck>) {
+
         this.countryimglist.clear()
         countryimglist = users
         notifyDataSetChanged()

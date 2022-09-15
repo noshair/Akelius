@@ -35,9 +35,9 @@ class CountryImagesRerpository @Inject constructor(
     }.flowOn(Dispatchers.IO)
 
     fun getallImagesLocally(): Flow<ImageDataClass> = flow {
-        var myList: MutableList<File> = mutableListOf<File>()
+        val myList: MutableList<File> = mutableListOf<File>()
 
-        var filelist: ArrayList<File>? = null
+        val filelist: ArrayList<File>? = null
         imagesDao.getAll()?.forEach {
             if (it != null) {
                 val stats = Stats(
@@ -65,7 +65,6 @@ class CountryImagesRerpository @Inject constructor(
                     stats
                 )
                 filelist?.add(file)
-                //  if (it.ino!=1050544)
                 myList.add(file)
             }
         }
